@@ -1,60 +1,87 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+    <v-app-bar app>
+      <app-header></app-header>
     </v-app-bar>
-
     <v-content>
-      <HelloWorld/>
+      <v-container fluid>
+        <v-text-field
+        label="Username"
+        filled
+        v-model="user.username"
+        ></v-text-field>
+        <v-text-field
+        label="Mail"
+        filled
+        v-model="user.email"
+        ></v-text-field>
+        <v-btn
+          color="primary"
+          @click="submit"
+        >Submit</v-btn>
+        <v-card class="mt-5">
+          <v-btn @click="fetchData">Get Data</v-btn>
+          <v-list-item v-for="u in users" :key="u">
+            <v-list-item-content>
+              <v-list-item-title>{{ u.username }} - {{ u.email }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-card>
+      </v-container>
     </v-content>
+    <v-footer>
+      <app-footer></app-footer>
+    </v-footer>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import AppHeader from "./components/Shared/Header";
+import AppFooter from "./components/Shared/Footer";
 
 export default {
-  name: 'App',
-
   components: {
-    HelloWorld,
+    AppHeader,
+    AppFooter
   },
-
-  data: () => ({
-    //
-  }),
+  data() {
+    return {
+      user: {
+        username: '',
+        email: ''
+      },
+      users: [],
+      resource: {},
+      node: 'data'
+    };
+  },
+  methods: {
+    submit() {
+      this.resource.saveAlt({node: this.node}, this.user);
+    },
+    fetchData() {
+      this.resource.getData({node: this.node})
+        .then(response =>{
+          return response.json();
+        })
+        .then(data => {
+          const resultArray = [];
+          for (let key in data) {
+            resultArray.push(data[key]);
+          }
+          this.users = resultArray;
+        });
+    }
+  },
+  created() {
+    const customAction = {
+        saveAlt: {method: 'POST'},
+        getData: {method: 'GET'}
+    };
+    this.resource = this.$resource('{node}.json', {}, customAction);
+  }
 };
 </script>
+
+<style scoped>
+</style>
